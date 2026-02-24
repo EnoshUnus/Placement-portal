@@ -1,0 +1,21 @@
+Company_ID,Company_Name,Domain,Required_Department,Minimum_CGPA,Required_Skill,Preferred_Certification,Job_Role
+C01,TCS,Product-Based,IT,8.07,Python,AWS Certified,Business Analyst
+C02,Infosys,Core Engineering,MECH,7.02,Cloud Computing,Azure Fundamentals,Business Analyst
+C03,Wipro,Telecom,EEE,8.12,Machine Learning,Six Sigma,Cloud Engineer
+C04,HCL,IT Services,IT,8.07,Cybersecurity,Azure Fundamentals,Business Analyst
+C05,Zoho,Startup,EEE,7.02,Web Development,Azure Fundamentals,Network Engineer
+C06,Accenture,Telecom,IT,7.98,Cybersecurity,PMP,System Engineer
+C07,Cognizant,IT Services,MECH,8.8,Cloud Computing,Coursera ML,Data Analyst
+C08,Capgemini,IT Services,IT,7.27,Cybersecurity,Six Sigma,Cloud Engineer
+C09,Amazon,Core Engineering,CSE,7.04,Java,PMP,Data Analyst
+C10,Google,Startup,AI&DS,6.61,Python,Coursera ML,System Engineer
+C11,Microsoft,Telecom,IT,7.78,C++,Cisco CCNA,System Engineer
+C12,Flipkart,Telecom,EEE,8.17,Web Development,AWS Certified,Data Analyst
+C13,L&T,IT Services,IT,8.37,Networking,AWS Certified,Business Analyst
+C14,Tata Motors,Startup,ECE,7.62,Java,Cisco CCNA,Business Analyst
+C15,Ashok Leyland,Product-Based,ECE,7.78,Cloud Computing,Coursera ML,Software Developer
+C16,HDFC Bank,IT Services,IT,7.51,C++,Coursera ML,Business Analyst
+C17,ICICI Bank,Startup,ECE,7.66,Embedded Systems,Azure Fundamentals,Data Analyst
+C18,Airtel,Startup,CSE,8.32,Embedded Systems,Cisco CCNA,System Engineer
+C19,Jio,Finance,AI&DS,6.94,Networking,PMP,System Engineer
+C20,Freshworks,Telecom,EEE,8.06,Cybersecurity,Google Data Analytics,ML Engineer

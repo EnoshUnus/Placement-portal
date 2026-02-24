@@ -1,0 +1,101 @@
+Student_ID,Name,Department,CGPA,Skills,Extra_Skills,Extra_Knowledge,Certifications
+S001,Akash,CSE,7.71,Cloud Computing,Leadership,Linux,Coursera ML
+S002,Bharath,CIVIL,7.0,C++,Critical Thinking,Git,Cisco CCNA
+S003,Enosh,CIVIL,8.22,Python,Problem Solving,Linux,Azure Fundamentals
+S004,Dayanithi,AI&DS,6.94,Cybersecurity,Communication,Docker,NPTEL
+S005,Gokul,EEE,9.62,SQL,Communication,TensorFlow,AWS Certified
+S006,Ajay5,MECH,8.57,SQL,Problem Solving,Linux,Azure Fundamentals
+S007,Sathish6,CSE,9.72,Machine Learning,Communication,Node.js,Azure Fundamentals
+S008,Varun7,IT,7.38,Data Structures,Communication,Power BI,NPTEL
+S009,Manoj8,CIVIL,8.43,Web Development,Critical Thinking,TensorFlow,Google Data Analytics
+S010,Kishore9,EEE,8.47,SQL,Teamwork,AWS,Google Data Analytics
+S011,Tharun10,CIVIL,8.32,Cybersecurity,Teamwork,TensorFlow,Google Data Analytics
+S012,Kishore11,CIVIL,6.45,Cybersecurity,Teamwork,Power BI,AWS Certified
+S013,Tharun12,ECE,7.58,Java,Problem Solving,TensorFlow,Coursera ML
+S014,Ashwin13,CIVIL,9.69,Machine Learning,Leadership,Node.js,AWS Certified
+S015,Suresh14,EEE,7.0,Cloud Computing,Teamwork,TensorFlow,AWS Certified
+S016,Nithin15,EEE,6.32,C++,Problem Solving,AWS,NPTEL
+S017,Nithin16,ECE,8.31,Java,Public Speaking,Node.js,AWS Certified
+S018,Manoj17,IT,8.81,C++,Problem Solving,Power BI,Coursera ML
+S019,Suresh18,ECE,8.08,Data Structures,Public Speaking,Linux,NPTEL
+S020,Ashwin19,IT,7.09,Java,Teamwork,Git,Google Data Analytics
+S021,Karthik20,IT,8.19,Machine Learning,Public Speaking,Git,NPTEL
+S022,Tarun21,CSE,6.67,Web Development,Leadership,Node.js,AWS Certified
+S023,Santhosh22,CSE,6.7,Web Development,Problem Solving,React,Google Data Analytics
+S024,Vikram23,CSE,7.54,Python,Public Speaking,React,Azure Fundamentals
+S025,Kiran24,AI&DS,8.04,Python,Teamwork,TensorFlow,Cisco CCNA
+S026,Tarun25,CSE,8.47,Cybersecurity,Teamwork,Git,NPTEL
+S027,Suresh26,CSE,6.47,SQL,Problem Solving,Linux,NPTEL
+S028,Santhosh27,MECH,7.78,SQL,Communication,React,Cisco CCNA
+S029,Arun28,MECH,6.53,Data Structures,Problem Solving,React,Azure Fundamentals
+S030,Adithya29,CIVIL,8.15,Java,Leadership,Linux,AWS Certified
+S031,Rohit30,MECH,8.14,Python,Public Speaking,Linux,AWS Certified
+S032,Suresh31,CSE,6.58,Machine Learning,Problem Solving,Node.js,Cisco CCNA
+S033,Abhishek32,CSE,6.17,Machine Learning,Communication,AWS,Cisco CCNA
+S034,Tarun33,CSE,8.43,Cloud Computing,Teamwork,Power BI,AWS Certified
+S035,Lokesh34,AI&DS,7.31,Java,Problem Solving,TensorFlow,AWS Certified
+S036,Nithin35,CSE,7.75,C++,Problem Solving,Linux,Google Data Analytics
+S037,Tarun36,EEE,6.68,Python,Communication,Linux,Google Data Analytics
+S038,Sathish37,CSE,9.48,SQL,Public Speaking,Power BI,AWS Certified
+S039,Abhishek38,EEE,8.07,Cloud Computing,Critical Thinking,AWS,Cisco CCNA
+S040,Harish39,CSE,9.54,Cloud Computing,Problem Solving,Power BI,Google Data Analytics
+S041,Dinesh40,ECE,7.67,Cloud Computing,Leadership,TensorFlow,Coursera ML
+S042,Manoj41,AI&DS,8.23,Java,Problem Solving,TensorFlow,Coursera ML
+S043,Harish42,IT,9.59,Cybersecurity,Public Speaking,TensorFlow,AWS Certified
+S044,Kiran43,ECE,7.92,Python,Teamwork,Git,Cisco CCNA
+S045,Vignesh44,AI&DS,6.01,Python,Critical Thinking,React,AWS Certified
+S046,Varun45,IT,6.24,Cloud Computing,Problem Solving,React,AWS Certified
+S047,Dinesh46,AI&DS,7.98,Cloud Computing,Leadership,AWS,NPTEL
+S048,Vikram47,AI&DS,9.18,Java,Communication,Power BI,Coursera ML
+S049,Varun48,IT,9.52,Cybersecurity,Public Speaking,Linux,NPTEL
+S050,Vikram49,MECH,6.34,Cybersecurity,Public Speaking,Git,Google Data Analytics
+S051,Sathish50,CIVIL,6.6,Java,Critical Thinking,Node.js,NPTEL
+S052,Ramesh51,ECE,6.34,C++,Public Speaking,Docker,AWS Certified
+S053,Ashwin52,EEE,6.18,Java,Public Speaking,Node.js,Cisco CCNA
+S054,Sathish53,ECE,6.32,Java,Leadership,Linux,Azure Fundamentals
+S055,Abhishek54,AI&DS,8.88,Cloud Computing,Communication,Docker,Cisco CCNA
+S056,Manoj55,AI&DS,7.54,Python,Teamwork,Node.js,AWS Certified
+S057,Vignesh56,CIVIL,7.97,Machine Learning,Critical Thinking,React,AWS Certified
+S058,Manoj57,AI&DS,9.14,SQL,Problem Solving,Docker,Azure Fundamentals
+S059,Ramesh58,MECH,7.03,Machine Learning,Communication,Docker,Coursera ML
+S060,Arun59,CIVIL,9.36,Data Structures,Leadership,Power BI,Coursera ML
+S061,Girish60,IT,6.09,Python,Teamwork,AWS,NPTEL
+S062,Nithin61,CIVIL,9.59,Web Development,Teamwork,Git,AWS Certified
+S063,Adithya62,MECH,6.55,Machine Learning,Public Speaking,React,NPTEL
+S064,Ajay63,MECH,6.04,Cloud Computing,Leadership,React,NPTEL
+S065,Yogesh64,EEE,9.26,Machine Learning,Leadership,Linux,Coursera ML
+S066,Santhosh65,AI&DS,6.89,Web Development,Teamwork,React,Azure Fundamentals
+S067,Rohit66,CIVIL,7.67,Data Structures,Teamwork,TensorFlow,AWS Certified
+S068,Manoj67,CSE,8.27,Java,Critical Thinking,TensorFlow,Cisco CCNA
+S069,Girish68,EEE,8.67,Data Structures,Teamwork,Docker,Google Data Analytics
+S070,Ramesh69,EEE,8.94,Web Development,Public Speaking,React,AWS Certified
+S071,Rahul70,AI&DS,6.77,Machine Learning,Public Speaking,TensorFlow,Cisco CCNA
+S072,Tharun71,ECE,6.27,Data Structures,Critical Thinking,Git,Azure Fundamentals
+S073,Yogesh72,CIVIL,8.07,Cloud Computing,Teamwork,Linux,Coursera ML
+S074,Rahul73,CSE,9.31,Data Structures,Problem Solving,Git,Azure Fundamentals
+S075,Ramesh74,EEE,9.74,SQL,Problem Solving,Docker,NPTEL
+S076,Deepak75,ECE,8.43,Data Structures,Problem Solving,Docker,AWS Certified
+S077,Karthik76,EEE,8.13,C++,Communication,Power BI,Azure Fundamentals
+S078,Nithin77,CSE,6.8,SQL,Problem Solving,Power BI,Google Data Analytics
+S079,Ashwin78,AI&DS,7.54,Machine Learning,Leadership,TensorFlow,Azure Fundamentals
+S080,Tharun79,AI&DS,7.04,Data Structures,Public Speaking,Docker,NPTEL
+S081,Deepak80,ECE,8.96,SQL,Critical Thinking,Node.js,Coursera ML
+S082,Ramesh81,EEE,9.33,Cybersecurity,Leadership,Git,Cisco CCNA
+S083,Ajay82,MECH,8.77,Cybersecurity,Communication,React,AWS Certified
+S084,Nithin83,ECE,8.62,Machine Learning,Public Speaking,TensorFlow,AWS Certified
+S085,Lokesh84,MECH,7.36,SQL,Communication,React,Cisco CCNA
+S086,Lokesh85,CSE,6.18,Cybersecurity,Public Speaking,Linux,NPTEL
+S087,Santhosh86,ECE,7.67,Data Structures,Critical Thinking,Git,Cisco CCNA
+S088,Nithin87,CIVIL,9.74,C++,Public Speaking,Git,Azure Fundamentals
+S089,Lokesh88,IT,7.64,Web Development,Leadership,Node.js,Coursera ML
+S090,Sathish89,IT,7.66,Data Structures,Communication,Git,Google Data Analytics
+S091,Harish90,MECH,7.72,Data Structures,Critical Thinking,React,Coursera ML
+S092,Harish91,AI&DS,7.05,Java,Teamwork,Power BI,Coursera ML
+S093,Varun92,AI&DS,7.66,C++,Communication,Power BI,Coursera ML
+S094,Varun93,ECE,7.22,Web Development,Leadership,Git,Coursera ML
+S095,Nithin94,IT,8.89,Web Development,Teamwork,Git,Coursera ML
+S096,Yogesh95,CSE,8.31,Web Development,Teamwork,Docker,AWS Certified
+S097,Arun96,CIVIL,7.77,C++,Critical Thinking,React,Coursera ML
+S098,Rohit97,CSE,6.12,Cloud Computing,Teamwork,AWS,Google Data Analytics
+S099,Suresh98,EEE,6.96,C++,Communication,AWS,Cisco CCNA
+S100,Rohit99,ECE,6.98,Machine Learning,Leadership,React,AWS Certified
