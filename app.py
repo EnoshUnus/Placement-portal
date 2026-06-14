@@ -4,7 +4,7 @@ import joblib
 import os
 import hashlib
 from dotenv import load_dotenv
-import ollama
+from google import genai
 from PyPDF2 import PdfReader
 
 # ─────────────────────────────────────────────
@@ -22,541 +22,338 @@ st.set_page_config(
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-:root {
-    --bg-base:       #0d0f14;
-    --bg-surface:    #13161e;
-    --bg-card:       #1a1e2a;
-    --bg-card-hover: #1e2333;
-    --border:        rgba(255,255,255,0.07);
-    --border-bright: rgba(255,255,255,0.13);
-    --accent-1:      #4f8ef7;
-    --accent-2:      #a78bfa;
-    --accent-green:  #34d399;
-    --accent-amber:  #fbbf24;
-    --text-1:        #f0f2f8;
-    --text-2:        #8892a4;
-    --text-3:        #50596a;
-    --radius-sm:     8px;
-    --radius-md:     14px;
-    --radius-lg:     20px;
-    --glow-blue:     0 0 28px rgba(79,142,247,0.18);
-    --glow-purple:   0 0 28px rgba(167,139,250,0.15);
-}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, [class*="css"] { font-family: 'Outfit', sans-serif; background: #f4f6fb; }
 
-html, body, [class*="css"] {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg-base) !important;
-    color: var(--text-1) !important;
-}
-
-/* ── Sidebar ─────────────────────────────── */
 section[data-testid="stSidebar"] {
-    background: var(--bg-surface) !important;
-    border-right: 1px solid var(--border) !important;
+    background: linear-gradient(180deg, #0a1628 0%, #0f2347 60%, #0a1628 100%);
+    border-right: 1px solid rgba(255,255,255,0.06);
 }
-section[data-testid="stSidebar"] * { color: var(--text-1) !important; }
-
+section[data-testid="stSidebar"] * { color: #e8edf5 !important; }
 section[data-testid="stSidebar"] .stButton > button {
-    background: rgba(79,142,247,0.10) !important;
-    border: 1px solid rgba(79,142,247,0.25) !important;
-    color: var(--accent-1) !important;
-    border-radius: var(--radius-sm) !important;
-    font-family: 'Sora', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.82rem !important;
-    letter-spacing: 0.3px !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 500 !important;
     width: 100%;
-    transition: all 0.18s ease;
+    transition: all 0.2s ease;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(79,142,247,0.20) !important;
-    border-color: rgba(79,142,247,0.5) !important;
+    background: rgba(255,255,255,0.14) !important;
 }
 
-/* ── Main area ───────────────────────────── */
-.main { background: var(--bg-base) !important; }
-.main .block-container {
-    padding: 2rem 2.5rem 4rem;
-    max-width: 1280px;
-    background: var(--bg-base) !important;
-}
+.main .block-container { padding: 2rem 2.5rem 4rem; max-width: 1300px; }
 
-/* ── Hero ────────────────────────────────── */
 .hero {
-    background: var(--bg-card);
-    border: 1px solid var(--border-bright);
-    border-radius: var(--radius-lg);
-    padding: 44px 52px;
-    margin-bottom: 32px;
-    position: relative;
-    overflow: hidden;
+    background: linear-gradient(135deg, #0a1628 0%, #0f2d5c 50%, #1a3a6e 100%);
+    border-radius: 18px; padding: 42px 48px;
+    margin-bottom: 32px; position: relative; overflow: hidden;
 }
 .hero::before {
-    content: '';
-    position: absolute; top: -80px; right: -80px;
-    width: 320px; height: 320px;
-    background: radial-gradient(circle, rgba(79,142,247,0.18) 0%, transparent 65%);
+    content: ''; position: absolute; top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%);
     border-radius: 50%;
 }
-.hero::after {
-    content: '';
-    position: absolute; bottom: -60px; left: 30%;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 65%);
-    border-radius: 50%;
+.hero-title  { font-size: 2.2rem; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2; }
+.hero-sub    { font-size: 1.05rem; color: rgba(255,255,255,0.65); margin-top: 8px; }
+.hero-badge  {
+    display: inline-block;
+    background: rgba(59,130,246,0.25); border: 1px solid rgba(59,130,246,0.4);
+    color: #93c5fd; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 14px;
 }
-.hero-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(79,142,247,0.12);
-    border: 1px solid rgba(79,142,247,0.3);
-    color: var(--accent-1);
-    font-size: 0.7rem; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    padding: 5px 14px; border-radius: 30px; margin-bottom: 18px;
-    font-family: 'IBM Plex Mono', monospace;
-}
-.hero-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 2.4rem; font-weight: 800;
-    color: var(--text-1);
-    letter-spacing: -1px; line-height: 1.15;
-}
-.hero-title span {
-    background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.hero-sub {
-    font-size: 0.95rem; color: var(--text-2);
-    margin-top: 10px; font-weight: 400; line-height: 1.6;
-}
-.hero-dots {
-    position: absolute; top: 20px; right: 52px;
-    display: flex; gap: 6px;
-}
-.hero-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-/* ── Section titles ──────────────────────── */
 .section-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 0.72rem; font-weight: 700;
-    color: var(--text-3);
-    letter-spacing: 2px; text-transform: uppercase;
-    margin: 32px 0 14px;
-    display: flex; align-items: center; gap: 10px;
-}
-.section-title::before {
-    content: '';
-    width: 3px; height: 14px;
-    background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
-    border-radius: 2px; flex-shrink: 0;
+    font-size: 1.3rem; font-weight: 700; color: #0f2347;
+    margin: 28px 0 16px; display: flex; align-items: center; gap: 10px;
 }
 .section-title::after {
-    content: ''; flex: 1; height: 1px;
-    background: var(--border); border-radius: 1px;
+    content: ''; flex: 1; height: 2px;
+    background: linear-gradient(90deg, #e2e8f0, transparent); border-radius: 1px;
 }
 
-/* ── Info cards ──────────────────────────── */
 .info-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 22px 26px;
-    margin-bottom: 16px;
-    color: var(--text-1) !important;
-    transition: border-color 0.2s;
+    background: #ffffff; border: 1px solid #e2e8f0;
+    border-radius: 14px; padding: 20px 24px;
+    margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    color: #1a1a1a !important;
 }
-.info-card * { color: var(--text-1) !important; }
-.info-card:hover { border-color: var(--border-bright); }
-.info-card b { font-weight: 700; color: var(--text-1) !important; }
+.info-card * { color: #1a1a1a !important; }
+.info-card b { font-weight: 700; }
 
-/* ── Metric row ──────────────────────────── */
-.metric-row { display: flex; gap: 14px; margin: 20px 0; flex-wrap: wrap; }
+.metric-row { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
 .metric-card {
-    flex: 1; min-width: 155px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 22px 24px;
-    position: relative; overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
+    flex: 1; min-width: 160px; background: #ffffff;
+    border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 20px 22px; box-shadow: 0 1px 6px rgba(0,0,0,0.05);
 }
-.metric-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
-.metric-card::after {
-    content: ''; position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-    opacity: 0.7;
-}
-.metric-label {
-    font-size: 0.68rem; font-weight: 700;
-    color: var(--text-3);
-    text-transform: uppercase; letter-spacing: 1.5px;
-    font-family: 'IBM Plex Mono', monospace;
-}
-.metric-value {
-    font-size: 2.1rem; font-weight: 800;
-    color: var(--text-1); margin-top: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: -1px;
-}
-.metric-value.green { color: var(--accent-green); }
-.metric-value.blue  { color: var(--accent-1); }
+.metric-label { font-size: 0.78rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; }
+.metric-value { font-size: 2rem; font-weight: 800; color: #0f2347; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+.metric-value.green { color: #059669; }
+.metric-value.blue  { color: #2563eb; }
 
-/* ── Student pills ───────────────────────── */
 .student-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(52,211,153,0.08);
-    border: 1px solid rgba(52,211,153,0.25);
-    color: var(--accent-green);
-    border-radius: 30px;
-    padding: 5px 14px; font-weight: 600; font-size: 0.82rem; margin: 3px;
-    font-family: 'DM Sans', sans-serif;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #ecfdf5; border: 1px solid #a7f3d0;
+    color: #065f46; border-radius: 30px;
+    padding: 6px 16px; font-weight: 600; font-size: 0.9rem; margin: 4px;
 }
 
-/* ── Pill tags ───────────────────────────── */
-.pill {
-    display: inline-flex; align-items: center;
-    background: rgba(79,142,247,0.08);
-    border: 1px solid rgba(79,142,247,0.2);
-    color: var(--accent-1);
-    border-radius: 20px;
-    padding: 3px 12px; font-size: 0.75rem; font-weight: 600; margin: 2px;
-    font-family: 'DM Sans', sans-serif;
-}
-
-/* ── Buttons ─────────────────────────────── */
 .stButton > button {
-    background: linear-gradient(135deg, #2563eb, #4f8ef7) !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: var(--radius-sm) !important;
-    font-family: 'Sora', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.88rem !important;
-    letter-spacing: 0.2px !important;
-    padding: 0.55rem 1.4rem !important;
-    transition: all 0.18s ease !important;
-    box-shadow: 0 2px 12px rgba(79,142,247,0.25) !important;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+    color: #ffffff !important; border: none !important;
+    border-radius: 10px !important; font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important; font-size: 0.95rem !important;
+    padding: 0.55rem 1.5rem !important; transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.3) !important;
 }
 .stButton > button:hover {
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 20px rgba(79,142,247,0.38) !important;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.4) !important;
 }
 
-/* ── Progress bar ────────────────────────── */
 .stProgress > div > div > div {
-    background: linear-gradient(90deg, var(--accent-1), var(--accent-2)) !important;
+    background: linear-gradient(90deg, #2563eb, #7c3aed) !important;
     border-radius: 10px !important;
 }
 
-/* ── Inputs & selects ────────────────────── */
-[data-testid="stTextInput"] input,
-[data-testid="stSelectbox"] select,
-.stSelectbox [data-baseweb="select"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text-1) !important;
-    border-radius: var(--radius-sm) !important;
-    font-family: 'DM Sans', sans-serif !important;
+.footer {
+    background: linear-gradient(135deg, #0a1628, #0f2347);
+    color: rgba(255,255,255,0.7); padding: 28px 36px;
+    border-radius: 16px; text-align: center; margin-top: 48px;
 }
-[data-testid="stTextInput"] input:focus {
-    border-color: var(--accent-1) !important;
-    box-shadow: 0 0 0 3px rgba(79,142,247,0.12) !important;
-}
+.footer h4 { color: #ffffff; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+.footer p  { font-size: 0.85rem; margin: 2px 0; }
 
-/* ── Dataframe ───────────────────────────── */
-[data-testid="stDataFrame"] {
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-md) !important;
-    overflow: hidden !important;
-}
-
-/* ── Tabs ────────────────────────────────── */
-[data-testid="stTabs"] [role="tablist"] {
-    background: var(--bg-card) !important;
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
-    border-bottom: 1px solid var(--border) !important;
-    gap: 4px !important; padding: 6px 8px 0 !important;
-}
-[data-testid="stTabs"] [role="tab"] {
-    color: var(--text-2) !important;
-    font-family: 'Sora', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.83rem !important;
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
-    transition: all 0.15s !important;
-}
-[data-testid="stTabs"] [role="tab"][aria-selected="true"] {
-    color: var(--accent-1) !important;
-    background: rgba(79,142,247,0.08) !important;
-    border-color: rgba(79,142,247,0.3) !important;
-}
-
-/* ── File uploader ───────────────────────── */
-[data-testid="stFileUploader"] {
-    background: var(--bg-card) !important;
-    border: 1px dashed var(--border-bright) !important;
-    border-radius: var(--radius-md) !important;
-    padding: 8px !important;
-}
-[data-testid="stFileUploader"] * { color: var(--text-2) !important; }
-
-/* ── Chat messages ───────────────────────── */
-[data-testid="stChatMessage"] {
-    background: transparent !important;
-    border: none !important;
-    padding: 4px 0 !important;
-}
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown {
-    background: linear-gradient(135deg, #1e40af, #2563eb) !important;
-    color: #fff !important;
-    border-radius: 16px 16px 4px 16px !important;
-    padding: 12px 16px !important;
-    max-width: 72% !important;
-    margin-left: auto !important;
-    box-shadow: 0 2px 16px rgba(37,99,235,0.22) !important;
-    font-size: 0.88rem !important; line-height: 1.6 !important;
-    border: none !important;
-}
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown p {
-    color: #fff !important;
-}
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown {
-    background: var(--bg-card) !important;
-    color: var(--text-1) !important;
-    border-radius: 16px 16px 16px 4px !important;
-    padding: 12px 16px !important;
-    max-width: 78% !important;
-    border: 1px solid var(--border-bright) !important;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.25) !important;
-    font-size: 0.88rem !important; line-height: 1.65 !important;
-}
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown p {
-    color: var(--text-1) !important;
-}
-[data-testid="chatAvatarIcon-user"] {
-    background: linear-gradient(135deg, var(--accent-1), #1e40af) !important;
-    border-radius: 50% !important;
-}
-[data-testid="chatAvatarIcon-assistant"] {
-    background: linear-gradient(135deg, var(--accent-2), #4f46e5) !important;
-    border-radius: 50% !important;
-}
-
-/* ── Chat input ──────────────────────────── */
-[data-testid="stChatInput"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border-bright) !important;
-    border-radius: var(--radius-md) !important;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.3) !important;
-    transition: border-color 0.2s !important;
-}
-[data-testid="stChatInput"]:focus-within {
-    border-color: var(--accent-1) !important;
-    box-shadow: 0 0 0 3px rgba(79,142,247,0.12), 0 2px 16px rgba(0,0,0,0.3) !important;
-}
-[data-testid="stChatInput"] textarea {
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.9rem !important;
-    color: var(--text-1) !important;
-    background: transparent !important;
-}
-[data-testid="stChatInput"] button {
-    background: linear-gradient(135deg, #1e40af, var(--accent-1)) !important;
-    border-radius: var(--radius-sm) !important;
-    border: none !important;
-    color: white !important;
-}
-
-/* ── Chat wrapper ────────────────────────── */
-.chat-container-box {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: 0 4px 32px rgba(0,0,0,0.35);
-    margin-bottom: 10px;
-}
-.chat-topbar {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 22px;
-    display: flex; align-items: center; gap: 14px;
-}
-.chat-topbar-avatar {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-2), #4f46e5);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; flex-shrink: 0;
-    box-shadow: var(--glow-purple);
-}
-.chat-topbar-name {
-    color: var(--text-1); font-weight: 700;
-    font-size: 0.92rem; line-height: 1.2;
-    font-family: 'Sora', sans-serif;
-}
-.chat-topbar-sub {
-    color: var(--text-3); font-size: 0.7rem;
-    margin-top: 2px; font-family: 'IBM Plex Mono', monospace;
-}
-.chat-topbar-status {
-    margin-left: auto; display: flex; align-items: center; gap: 6px;
-}
-.chat-topbar-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 8px var(--accent-green);
-}
-.chat-topbar-status-txt {
-    color: var(--accent-green); font-size: 0.68rem;
-    font-weight: 600; font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.5px;
-}
-.chat-empty {
-    text-align: center; padding: 48px 24px;
-    color: var(--text-3);
-}
-.chat-empty-icon { font-size: 2.6rem; margin-bottom: 12px; opacity: 0.7; }
-.chat-empty-title {
-    font-weight: 700; font-size: 0.95rem;
-    color: var(--text-2);
-    font-family: 'Sora', sans-serif;
-}
-.chat-empty-sub { font-size: 0.8rem; margin-top: 6px; color: var(--text-3); line-height: 1.6; }
-
-/* ── Sidebar branding ────────────────────── */
 .sidebar-logo {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 16px; margin-bottom: 18px; text-align: center;
-}
-.sidebar-logo-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 0.95rem; font-weight: 800;
-    color: var(--text-1); letter-spacing: -0.3px;
-}
-.sidebar-logo-sub {
-    font-size: 0.68rem; color: var(--text-3);
-    margin-top: 4px; font-family: 'IBM Plex Mono', monospace;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 18px 16px; margin-bottom: 20px; text-align: center;
 }
 .role-badge {
-    background: rgba(79,142,247,0.10);
-    border: 1px solid rgba(79,142,247,0.22);
-    border-radius: var(--radius-sm);
-    padding: 7px 12px;
-    font-size: 0.75rem; font-weight: 700;
-    text-align: center; margin-bottom: 14px;
-    color: var(--accent-1);
-    font-family: 'Sora', sans-serif;
-    letter-spacing: 0.3px;
+    background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.35);
+    border-radius: 8px; padding: 6px 12px;
+    font-size: 0.8rem; font-weight: 600; text-align: center; margin-bottom: 16px;
 }
-.sidebar-email {
-    font-size: 0.72rem; color: var(--text-3);
-    margin-bottom: 20px; text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
+.pill {
+    display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe;
+    color: #1e40af; border-radius: 20px;
+    padding: 3px 12px; font-size: 0.78rem; font-weight: 600; margin: 2px;
 }
-
-/* ── Footer ──────────────────────────────── */
-.footer {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--text-3);
-    padding: 28px 36px;
-    border-radius: var(--radius-lg);
-    text-align: center;
-    margin-top: 52px;
+.career-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    margin-bottom: 20px;
 }
-.footer h4 {
-    color: var(--text-1);
-    font-size: 1rem; font-weight: 800;
-    font-family: 'Sora', sans-serif;
-    margin-bottom: 6px; letter-spacing: -0.3px;
+.career-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(37,99,235,0.08);
+    border-color: #3b82f6;
 }
-.footer p { font-size: 0.78rem; margin: 3px 0; }
-
-/* ── Divider ─────────────────────────────── */
-hr { border-color: var(--border) !important; }
-
-/* ── Alert & info boxes ──────────────────── */
-[data-testid="stAlert"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-sm) !important;
-    color: var(--text-1) !important;
+.badge-high {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    border: 1px solid #a7f3d0 !important;
+    display: inline-block !important;
 }
-
-/* ── Scrollbar ───────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
-
-/* ── Bar chart ───────────────────────────── */
-[data-testid="stVegaLiteChart"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-md) !important;
-    padding: 8px !important;
+.badge-good {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    border: 1px solid #bfdbfe !important;
+    display: inline-block !important;
+}
+.badge-potential {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    border: 1px solid #fde68a !important;
+    display: inline-block !important;
+}
+.linkedin-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    background: linear-gradient(135deg, #0077b5, #005987) !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: center !important;
+    box-shadow: 0 4px 10px rgba(0, 119, 181, 0.25) !important;
+}
+.linkedin-btn:hover {
+    background: linear-gradient(135deg, #005987, #003e5e) !important;
+    box-shadow: 0 6px 14px rgba(0, 119, 181, 0.35) !important;
+    transform: translateY(-1px) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("""
 <div class="hero">
-    <div class="hero-dots">
-        <div class="hero-dot" style="background:#ef4444;"></div>
-        <div class="hero-dot" style="background:#fbbf24;"></div>
-        <div class="hero-dot" style="background:#34d399;"></div>
-    </div>
     <div class="hero-badge">🎓 Sona College of Technology</div>
-    <div class="hero-title">AI Powered Smart<br><span>Placement Management</span></div>
-    <div class="hero-sub">Intelligent eligibility analysis &nbsp;·&nbsp; ML placement prediction &nbsp;·&nbsp; AI career guidance</div>
+    <div class="hero-title">AI Powered Smart Placement<br>Management System</div>
+    <div class="hero-sub">Intelligent eligibility analysis · ML placement prediction · AI career guidance</div>
 </div>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # ENV & MODEL
 # ─────────────────────────────────────────────
-load_dotenv()
+load_dotenv(override=True)
+
+# File paths
+USERS_FILE = "users.csv"
+STUDENTS_FILE = "students.csv"
+COMPANY_FILE = "newcompany.csv"
+
+# Initialize Gemini Client
+api_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=api_key) if api_key else None
+
 model = joblib.load("placement_model.pkl") if os.path.exists("placement_model.pkl") else None
 
-COMPANY_FILE  = "newcompany.csv"
-STUDENTS_FILE = "students.csv"
-USERS_FILE    = "users.csv"
+# ─────────────────────────────────────────────
+# HELPER: Call Gemini (Streaming)
+# ─────────────────────────────────────────────
+def ask_gemini_stream(system_prompt: str, user_message: str):
+    """Send a message to Gemini 2.5 Flash and yield content stream chunks."""
+    if not client:
+        yield "❌ Gemini Client is not configured. Please ensure GEMINI_API_KEY is present in your .env file."
+        return
+    try:
+        full_prompt = f"System Instruction: {system_prompt}\n\nUser Query: {user_message}"
+        response = client.models.generate_content_stream(
+            model="gemini-2.5-flash",
+            contents=full_prompt
+        )
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
+    except Exception as e:
+        yield f"❌ Error: {str(e)}"
 
 # ─────────────────────────────────────────────
-# HELPER: Call Ollama (Llama3)
+# HELPER: Get Job Suggestions (JSON)
 # ─────────────────────────────────────────────
-def ask_llama(system_prompt: str, user_message: str) -> str:
-    response = ollama.chat(
-        model='llama3',
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_message}
+def get_job_suggestions(department, cgpa, skills, extra_skills, extra_knowledge, certifications):
+    """Call Gemini to get job suggestions based on candidate profile."""
+    import json
+    if not client:
+        return []
+    
+    prompt = f"""
+    You are an expert career advisor. Based on the student's profile, suggest EXACTLY 3 job roles they should target.
+    
+    Profile:
+    - Department: {department}
+    - CGPA: {cgpa} (academic performance indicator)
+    - Primary Skills: {skills}
+    - Extra Skills: {extra_skills}
+    - Extra Knowledge Areas: {extra_knowledge}
+    - Certifications: {certifications}
+    
+    Provide your output as a VALID JSON array of objects. Do not include markdown code fences (like ```json). Return ONLY the raw JSON string.
+    Each object in the array must have the following keys:
+    1. "role" - Title of the job role (e.g. "React Developer", "Machine Learning Engineer").
+    2. "fit_reason" - Explain in 1-2 sentences why this fits their skills and performance (mention CGPA or department if relevant).
+    3. "match_level" - One of "High Match", "Good Match", "Potential Match".
+    4. "skills_to_acquire" - A list of 2-3 specific skills they should acquire or focus on next to secure this role.
+    5. "linkedin_query" - A short search query string suitable for LinkedIn jobs search (e.g. "software engineer" or "data analyst").
+    
+    Ensure the JSON is strictly compliant and contains only the array.
+    """
+    
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        text = response.text.strip()
+        # Clean markdown formatting if model returned any
+        if text.startswith("```"):
+            lines = text.split("\n")
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines[-1].strip() == "```":
+                lines = lines[:-1]
+            text = "\n".join(lines).strip()
+            if text.lower().startswith("json"):
+                text = text[4:].strip()
+        
+        # Parse JSON
+        suggestions = json.loads(text)
+        return suggestions
+    except Exception as e:
+        # Return fallback roles based on department & skills
+        fallback = [
+            {
+                "role": "Software Developer",
+                "fit_reason": f"Matches your background in {department} and interest in technology.",
+                "match_level": "Good Match",
+                "skills_to_acquire": ["System Design", "Cloud Infrastructure"],
+                "linkedin_query": "software engineer"
+            },
+            {
+                "role": "Data Analyst",
+                "fit_reason": "Analytical role suitable for leveraging problem-solving skills.",
+                "match_level": "Good Match",
+                "skills_to_acquire": ["SQL", "Power BI"],
+                "linkedin_query": "data analyst"
+            },
+            {
+                "role": "Associate Engineer",
+                "fit_reason": "General engineering entry-level role aligned with your academic qualification.",
+                "match_level": "Potential Match",
+                "skills_to_acquire": ["Core CS Concepts", "Data Structures"],
+                "linkedin_query": "associate engineer"
+            }
         ]
-    )
-    return response['message']['content']
-
-def ask_llama_chat(system_prompt: str, messages: list) -> str:
-    chat_messages = [{"role": "system", "content": system_prompt}]
-    chat_messages.extend(messages)
-    response = ollama.chat(
-        model='llama3',
-        messages=chat_messages
-    )
-    return response['message']['content']
+        return fallback
 
 # ─────────────────────────────────────────────
 # CSV NORMALISER
+# Handles BOTH column formats:
+#   Format A (newcompany.csv): Company, Job Roles, Job Location,
+#                              CTC (LPA), Eligibility CGPA, Departments, Number of Rounds
+#   Format B (old format):     Company_ID, Company_Name, Domain,
+#                              Required_Department, Minimum_CGPA,
+#                              Required_Skill, Preferred_Certification, Job_Role
+# After normalisation all code uses Format A column names.
 # ─────────────────────────────────────────────
 def normalise_companies(df: pd.DataFrame) -> pd.DataFrame:
+    """Rename old-format columns to match the canonical column set."""
     df = df.copy()
     df.columns = df.columns.str.strip()
+
+    # Already in new format?
     if "Company" in df.columns:
         for col, default in [
             ("Job Roles",       "N/A"),
@@ -569,12 +366,15 @@ def normalise_companies(df: pd.DataFrame) -> pd.DataFrame:
             if col not in df.columns:
                 df[col] = default
         return df
+
+    # Old format — rename
     if "Company_Name" in df.columns:
         df = df.rename(columns={
             "Company_Name":        "Company",
             "Minimum_CGPA":        "Eligibility CGPA",
             "Required_Department": "Departments",
         })
+
         roles_parts = []
         if "Job_Role" in df.columns:
             roles_parts.append(df["Job_Role"].fillna(""))
@@ -584,8 +384,10 @@ def normalise_companies(df: pd.DataFrame) -> pd.DataFrame:
             df["Job Roles"] = roles_parts[0] if len(roles_parts) == 1 else (
                 roles_parts[0] + " | " + roles_parts[1]
             )
+
         if "Domain" in df.columns and "Job Location" not in df.columns:
             df["Job Location"] = df["Domain"]
+
         for col, default in [
             ("Job Location",    "N/A"),
             ("CTC (LPA)",       "N/A"),
@@ -593,6 +395,7 @@ def normalise_companies(df: pd.DataFrame) -> pd.DataFrame:
         ]:
             if col not in df.columns:
                 df[col] = default
+
     return df
 
 def load_csv(path: str) -> pd.DataFrame:
@@ -715,11 +518,9 @@ def login_page():
 if not st.session_state.logged_in:
     login_page()
     st.markdown("""
-    <div class="footer">
-        <h4>🎓 Sona College of Technology</h4>
-        <p>Autonomous &nbsp;·&nbsp; NAAC A++ &nbsp;·&nbsp; AICTE Approved</p>
-        <p style="margin-top:8px;font-size:0.72rem;">© 2026 Department of Training &amp; Placement</p>
-    </div>
+    <div class="footer"><h4>Sona College of Technology</h4>
+    <p>Autonomous | NAAC A++ | AICTE Approved</p>
+    <p>© 2026 Department of Training &amp; Placement</p></div>
     """, unsafe_allow_html=True)
     st.stop()
 
@@ -729,13 +530,15 @@ if not st.session_state.logged_in:
 with st.sidebar:
     st.markdown(f"""
     <div class="sidebar-logo">
-        <div class="sidebar-logo-title">🎓 Placement Portal</div>
-        <div class="sidebar-logo-sub">SONA COLLEGE OF TECHNOLOGY</div>
+        <div style="font-size:1rem;font-weight:700;">🎓 Placement Portal</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">Sona College of Technology</div>
     </div>
     <div class="role-badge">
         {'👨‍💼 Admin Panel' if st.session_state.role == 'admin' else '🎓 Student Panel'}
     </div>
-    <div class="sidebar-email">{st.session_state.email}</div>
+    <div style="font-size:0.8rem;color:rgba(255,255,255,0.45);margin-bottom:20px;text-align:center;">
+        {st.session_state.email}
+    </div>
     """, unsafe_allow_html=True)
     if st.button("🚪  Logout", use_container_width=True):
         logout()
@@ -788,16 +591,16 @@ if st.session_state.role == "admin":
 
                 st.markdown(f"""
                 <div class="info-card">
-                    <div style="font-size:1.05rem;font-weight:800;color:var(--text-1);margin-bottom:14px;font-family:'Sora',sans-serif;">
+                    <div style="font-size:1.1rem;font-weight:700;color:#0f2347;margin-bottom:12px;">
                         🏢 {comp['Company']}
                     </div>
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
                         <span class="pill">📍 {comp.get('Job Location','N/A')}</span>
                         <span class="pill">💰 {comp.get('CTC (LPA)','N/A')} LPA</span>
                         <span class="pill">🎓 Min CGPA: {comp['Eligibility CGPA']}</span>
                         <span class="pill">🔄 {comp.get('Number of Rounds','N/A')} Rounds</span>
                     </div>
-                    <div style="font-size:0.82rem;color:var(--text-2);line-height:1.7;">
+                    <div style="font-size:0.85rem;color:#475569;">
                         <b>Departments:</b> {comp['Departments']}<br>
                         <b>Roles:</b> {comp['Job Roles']}
                     </div>
@@ -832,88 +635,14 @@ if st.session_state.role == "admin":
 
                 st.bar_chart(
                     pd.DataFrame({"Category":["Eligible","Not Eligible"],"Count":[ec,total-ec]})
-                    .set_index("Category"), color="#4f8ef7", height=260
+                    .set_index("Category"), color="#2563eb", height=260
                 )
 
-                # ── Eligible Students (Clickable) ──────────────
                 st.markdown('<div class="section-title">✅ Eligible Students</div>', unsafe_allow_html=True)
                 if eligible_names:
-                    # Initialise selected_student in session state if not present
-                    if "selected_student" not in st.session_state:
-                        st.session_state["selected_student"] = None
-
-                    # Render one button per eligible student in a responsive grid
-                    cols = st.columns(6)
-                    for i, stu_name in enumerate(eligible_names):
-                        with cols[i % 6]:
-                            # Highlight the active selection with a different label
-                            is_active = st.session_state["selected_student"] == stu_name
-                            btn_label = f"✅ {stu_name}" if is_active else f"👤 {stu_name}"
-                            if st.button(btn_label, key=f"pill_{selected}_{stu_name}"):
-                                # Toggle: click same name again to close panel
-                                if is_active:
-                                    st.session_state["selected_student"] = None
-                                else:
-                                    st.session_state["selected_student"] = stu_name
-                                st.rerun()
-
-                    # ── Student Detail Panel ───────────────────
-                    sel_name = st.session_state.get("selected_student")
-                    if sel_name and sel_name in eligible_names:
-                        sel_row = students[students["Name"] == sel_name]
-                        if not sel_row.empty:
-                            sv = sel_row.iloc[0]
-
-                            # Build skill pills
-                            skill_pills_detail = "".join(
-                                f'<span class="pill">🛠️ {sk.strip()}</span>'
-                                for sk in str(sv.get("Skills", "N/A")).split(",")
-                                if sk.strip()
-                            )
-
-                            # Try multiple possible column names for certification
-                            cert_val = "N/A"
-                            for cert_col in ["Certification", "Certifications",
-                                             "certification", "certifications"]:
-                                if cert_col in sv.index and str(sv[cert_col]).strip() not in ("", "nan"):
-                                    cert_val = sv[cert_col]
-                                    break
-
-                            st.markdown(f"""
-                            <div class="info-card" style="border-left:3px solid var(--accent-1);
-                                                          margin-top:16px;">
-                                <div style="font-size:1.05rem;font-weight:800;color:var(--text-1);
-                                            margin-bottom:14px;font-family:'Sora',sans-serif;">
-                                    👤 {sv['Name']} — Student Details
-                                </div>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;
-                                            font-size:0.85rem;color:var(--text-2);margin-bottom:12px;">
-                                    <div>
-                                        <b style="color:var(--text-1);">Student ID:</b>
-                                        &nbsp;{sv.get('Student_ID', 'N/A')}
-                                    </div>
-                                    <div>
-                                        <b style="color:var(--text-1);">Department:</b>
-                                        &nbsp;{sv.get('Department', 'N/A')}
-                                    </div>
-                                    <div>
-                                        <b style="color:var(--text-1);">CGPA:</b>
-                                        &nbsp;{sv.get('CGPA', 'N/A')}
-                                    </div>
-                                    <div>
-                                        <b style="color:var(--text-1);">Certification:</b>
-                                        &nbsp;{cert_val}
-                                    </div>
-                                </div>
-                                <div style="margin-top:8px;">
-                                    <b style="color:var(--text-1);font-size:0.85rem;">Skills:</b>
-                                    &nbsp;
-                                    <span style="display:inline-flex;flex-wrap:wrap;gap:4px;">
-                                        {skill_pills_detail}
-                                    </span>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                    pills = "".join(f'<span class="student-pill">👤 {n}</span>' for n in eligible_names)
+                    st.markdown(f'<div style="display:flex;flex-wrap:wrap;gap:4px;">{pills}</div>',
+                                unsafe_allow_html=True)
                 else:
                     st.warning("No eligible students for this company.")
 
@@ -922,71 +651,36 @@ if st.session_state.role == "admin":
 
     # ── Ask Balaji Admin ───────────────────────────────
     st.markdown('<div class="section-title">🤖 Ask Balaji – Admin Mode</div>', unsafe_allow_html=True)
-
-    if "admin_chat_history" not in st.session_state:
-        st.session_state.admin_chat_history = []
-
     st.markdown("""
-    <div class="chat-container-box">
-        <div class="chat-topbar">
-            <div class="chat-topbar-avatar">🤖</div>
-            <div>
-                <div class="chat-topbar-name">Balaji AI</div>
-                <div class="chat-topbar-sub">PLACEMENT ASSISTANT · ADMIN MODE</div>
-            </div>
-            <div class="chat-topbar-status">
-                <div class="chat-topbar-dot"></div>
-                <div class="chat-topbar-status-txt">ONLINE</div>
-            </div>
-        </div>
-    </div>""", unsafe_allow_html=True)
+    <div class="info-card" style="background:#f0f9ff;border-color:#bae6fd;">
+    <span style="color:#0369a1;font-size:0.88rem;">
+    💡 Ask about eligibility, student counts, company requirements — Balaji answers from your CSV data only.
+    </span></div>
+    """, unsafe_allow_html=True)
 
-    if not st.session_state.admin_chat_history:
-        st.markdown("""
-        <div class="chat-empty">
-            <div class="chat-empty-icon">💬</div>
-            <div class="chat-empty-title">No messages yet</div>
-            <div class="chat-empty-sub">Ask about student eligibility, company requirements,<br>placement statistics and more…</div>
-        </div>""", unsafe_allow_html=True)
-
-    for msg in st.session_state.admin_chat_history:
-        with st.chat_message(msg["role"], avatar="👤" if msg["role"] == "user" else "🤖"):
-            st.markdown(msg["content"])
-
-    col_clr, _ = st.columns([1, 5])
-    with col_clr:
-        if st.button("🗑️ Clear Chat", key="clear_admin"):
-            st.session_state.admin_chat_history = []
-            st.rerun()
-
-    if admin_q := st.chat_input("Ask Balaji anything about students or companies…", key="admin_chat_input"):
+    admin_q = st.text_input("Question", placeholder="e.g. Which students qualify for Accenture?", key="admin_q")
+    if st.button("Ask Balaji 🤖", key="ask_admin"):
         if not os.path.exists(STUDENTS_FILE) or not os.path.exists(COMPANY_FILE):
             st.error("Upload both CSV files first.")
+        elif not admin_q.strip():
+            st.warning("Please enter a question.")
         else:
             s_df = load_csv(STUDENTS_FILE)
             c_df = load_companies(COMPANY_FILE)
             system = (
-                "You are Balaji, an AI placement assistant for Sona College of Technology (Admin Mode). "
-                "You are NOT Claude, NOT ChatGPT, NOT any other AI. You are Balaji, a custom AI built "
-                "for Sona College of Technology's placement portal. If asked who you are or what model "
-                "powers you, always say you are Balaji. "
-                "You have access to student and company data. Answer ONLY using the data provided. "
-                "Be concise and precise. Format answers clearly.\n\n"
-                f"STUDENTS DATA:\n{s_df.to_string(index=False)}\n\n"
-                f"COMPANIES DATA:\n{c_df.to_string(index=False)}"
+                "You are Balaji, an AI placement assistant for Sona College of Technology. "
+                "Answer ONLY using the data provided. Be concise and precise."
             )
-            st.session_state.admin_chat_history.append({"role": "user", "content": admin_q})
-            with st.chat_message("user", avatar="👤"):
-                st.markdown(admin_q)
-            with st.chat_message("assistant", avatar="🤖"):
-                with st.spinner(""):
-                    try:
-                        reply = ask_llama_chat(system, st.session_state.admin_chat_history)
-                        st.markdown(reply)
-                        st.session_state.admin_chat_history.append({"role": "assistant", "content": reply})
-                    except Exception as e:
-                        st.session_state.admin_chat_history.pop()
-                        st.error(f"❌ Ollama error: {str(e)}")
+            user_msg = (
+                f"STUDENTS:\n{s_df.to_string(index=False)}\n\n"
+                f"COMPANIES:\n{c_df.to_string(index=False)}\n\n"
+                f"Question: {admin_q}"
+            )
+            try:
+                st.markdown("**🤖 Balaji says:**")
+                st.write_stream(ask_gemini_stream(system, user_msg))
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
 
 # ═══════════════════════════════════════════════════════
 # STUDENT PANEL
@@ -1017,20 +711,32 @@ elif st.session_state.role == "student":
             department = s["Department"]
             cgpa       = float(s["CGPA"])
             skills     = str(s.get("Skills", ""))
+            extra_skills    = str(s.get("Extra_Skills", ""))
+            extra_knowledge = str(s.get("Extra_Knowledge", ""))
+            certifications  = str(s.get("Certifications", ""))
 
-            skill_pills = "".join(
-                f'<span class="pill">🛠️ {sk.strip()}</span>'
-                for sk in skills.split(",") if sk.strip()
-            )
+            all_skills = [sk.strip() for sk in skills.split(",") if sk.strip()]
+            all_extra_skills = [sk.strip() for sk in extra_skills.split(",") if sk.strip()]
+            all_extra_knowledge = [sk.strip() for sk in extra_knowledge.split(",") if sk.strip()]
+            all_certs = [c.strip() for c in certifications.split(",") if c.strip()]
+
+            skill_pills = "".join(f'<span class="pill">🛠️ {sk}</span>' for sk in all_skills)
+            extra_skill_pills = "".join(f'<span class="pill" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;">🌟 {sk}</span>' for sk in all_extra_skills)
+            knowledge_pills = "".join(f'<span class="pill" style="background:#faf5ff;border-color:#e9d5ff;color:#6b21a8;">🧠 {sk}</span>' for sk in all_extra_knowledge)
+            cert_pills = "".join(f'<span class="pill" style="background:#fff7ed;border-color:#ffedd5;color:#9a3412;">🎓 {sk}</span>' for sk in all_certs)
+
             st.markdown(f"""
-            <div class="info-card" style="border-left:3px solid var(--accent-1);">
-                <div style="font-size:1.3rem;font-weight:800;color:var(--text-1);margin-bottom:14px;font-family:'Sora',sans-serif;">
-                    👋 Welcome back, {name}
+            <div class="info-card" style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border-color:#bfdbfe;">
+                <div style="font-size:1.4rem;font-weight:800;color:#1e3a8a;margin-bottom:12px;">
+                    👋 Welcome, {name}!
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                     <span class="pill">🏛️ {department}</span>
                     <span class="pill">📊 CGPA: {cgpa}</span>
                     {skill_pills}
+                    {extra_skill_pills}
+                    {knowledge_pills}
+                    {cert_pills}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1046,16 +752,16 @@ elif st.session_state.role == "student":
                     feats  = pd.DataFrame([{"CGPA":cgpa,"Internship":1,"Projects":2,"Communication":3}])
                     prob   = model.predict_proba(feats)[0][1] * 100
                     prob_r = round(prob, 2)
-                    colour  = "#34d399" if prob >= 70 else ("#fbbf24" if prob >= 40 else "#f87171")
+                    colour  = "#059669" if prob >= 70 else ("#d97706" if prob >= 40 else "#dc2626")
                     verdict = ("High Chance ✅" if prob >= 70
                                else "Moderate Chance ⚠️" if prob >= 40
                                else "Needs Improvement 📈")
                     st.markdown(f"""
                     <div class="metric-row">
-                        <div class="metric-card" style="border-top-color:{colour};">
+                        <div class="metric-card" style="border-left:4px solid {colour};">
                             <div class="metric-label">Placement Probability</div>
                             <div class="metric-value" style="color:{colour};">{prob_r}%</div>
-                            <div style="font-size:0.82rem;color:{colour};font-weight:700;margin-top:8px;font-family:'IBM Plex Mono',monospace;">{verdict}</div>
+                            <div style="font-size:0.85rem;color:{colour};font-weight:600;margin-top:6px;">{verdict}</div>
                         </div>
                     </div>""", unsafe_allow_html=True)
                     st.progress(int(prob))
@@ -1090,103 +796,192 @@ elif st.session_state.role == "student":
                         st.dataframe(scored_df, use_container_width=True, height=280)
                         top = scored[0]
                         st.markdown(f"""
-                        <div class="info-card" style="border-left:3px solid var(--accent-green);">
-                            <b style="color:var(--accent-green);">🥇 Best Match:</b>&nbsp;
-                            <span style="color:var(--text-1);">{top['Company']}</span>
-                            &nbsp;·&nbsp; <span style="color:var(--text-2);">{top['CTC (LPA)']} LPA</span>
-                            &nbsp;·&nbsp; <span style="color:var(--text-2);">{top['Location']}</span>
-                            &nbsp;·&nbsp; <b style="color:var(--accent-green);">{top['Match %']}% match</b>
+                        <div class="info-card" style="background:#f0fdf4;border-color:#86efac;">
+                            <b style="color:#166534;">🥇 Best Match:</b>&nbsp;
+                            {top['Company']} &nbsp;·&nbsp; {top['CTC (LPA)']} LPA
+                            &nbsp;·&nbsp; {top['Location']}
+                            &nbsp;·&nbsp; <b>{top['Match %']}% match</b>
                         </div>""", unsafe_allow_html=True)
                     else:
                         st.warning("No matching companies for your profile.")
 
+            # ── Career Guidance & LinkedIn Jobs ──────
+            st.markdown('<div class="section-title">🎯 AI Career Guidance & LinkedIn Jobs</div>', unsafe_allow_html=True)
+            
+            cache_key = f"job_suggestions_{reg_no.strip().upper()}"
+            
+            if cache_key not in st.session_state:
+                st.info("💡 Let Balaji analyze your academic performance and skills to suggest career roles and find live LinkedIn opportunities.")
+                if st.button("🔍 Suggest Job Roles & LinkedIn Jobs", key="gen_career_btn"):
+                    with st.spinner("Analyzing profile and generating recommendations..."):
+                        st.session_state[cache_key] = get_job_suggestions(
+                            department, cgpa, skills, extra_skills, extra_knowledge, certifications
+                        )
+                        st.rerun()
+            else:
+                suggestions = st.session_state[cache_key]
+                
+                cols_hdr = st.columns([8, 2])
+                with cols_hdr[0]:
+                     st.write("Here are the top career paths recommended for you based on your academic performance and skills:")
+                with cols_hdr[1]:
+                     if st.button("🔄 Refresh Suggestions", key="regen_career_btn"):
+                         del st.session_state[cache_key]
+                         st.rerun()
+                
+                cols = st.columns(3)
+                for idx, sug in enumerate(suggestions):
+                    role = sug.get("role", "N/A")
+                    fit_reason = sug.get("fit_reason", "N/A")
+                    match_level = sug.get("match_level", "Good Match")
+                    skills_to_acquire = sug.get("skills_to_acquire", [])
+                    query = sug.get("linkedin_query", role)
+                    
+                    import urllib.parse
+                    encoded_query = urllib.parse.quote(query)
+                    linkedin_url = f"https://www.linkedin.com/jobs/search/?keywords={encoded_query}"
+                    
+                    badge_class = "badge-good"
+                    if "high" in match_level.lower():
+                        badge_class = "badge-high"
+                    elif "potential" in match_level.lower() or "medium" in match_level.lower():
+                        badge_class = "badge-potential"
+                    
+                    skills_list_html = "".join(f'<span class="pill" style="margin:2px; font-size:0.75rem;">📚 {sk}</span>' for sk in skills_to_acquire)
+                    
+                    with cols[idx % 3]:
+                        st.markdown(f"""
+                        <div class="career-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <b style="font-size:1.1rem; color:#0f2347; line-height:1.2;">{role}</b>
+                            </div>
+                            <div style="margin-bottom:12px;">
+                                <span class="{badge_class}">{match_level}</span>
+                            </div>
+                            <p style="font-size:0.85rem; color:#475569; margin-bottom:14px; line-height:1.4; min-height:60px;">
+                                {fit_reason}
+                            </p>
+                            <div style="margin-top:auto; margin-bottom:12px;">
+                                <div style="font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+                                    Skills to Focus:
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                    {skills_list_html}
+                                </div>
+                            </div>
+                            <a href="{linkedin_url}" target="_blank" class="linkedin-btn">
+                                <svg style="width:14px;height:14px;fill:currentColor;margin-right:6px;" viewBox="0 0 24 24">
+                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                                </svg>
+                                Find Jobs on LinkedIn
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                # Custom LinkedIn job finder
+                st.markdown("""
+                <div style="margin-top:16px; margin-bottom:8px; padding:16px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
+                    <div style="font-weight:700; color:#0f2347; margin-bottom:4px; font-size:0.9rem;">
+                        🔍 Custom LinkedIn Job Search
+                    </div>
+                    <div style="font-size:0.78rem; color:#64748b;">
+                        Looking for something else? Enter any job title, company name, or technology to search directly on LinkedIn.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                custom_query = st.text_input("Job Title / Skill to Search", placeholder="e.g. AWS Engineer, React Developer", key="custom_job_query")
+                if st.button("Search on LinkedIn ↗", key="search_linkedin_custom"):
+                    if custom_query.strip():
+                        import urllib.parse
+                        encoded_custom = urllib.parse.quote(custom_query.strip())
+                        custom_url = f"https://www.linkedin.com/jobs/search/?keywords={encoded_custom}"
+                        st.markdown(f"""
+                        <div style="margin-top: 8px;">
+                            <a href="{custom_url}" target="_blank" class="linkedin-btn" style="max-width: 280px;">
+                                Open LinkedIn Search for "{custom_query}" ↗
+                            </a>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.warning("Please enter a search term.")
+
+            st.markdown("---")
+
             # ── Resume Analyser ───────────────────────
             st.markdown('<div class="section-title">📄 Resume Analyser</div>', unsafe_allow_html=True)
-            uploaded = st.file_uploader("Upload Resume (PDF)", type=["pdf"], key="resume_up")
+            uploaded = st.file_uploader("Upload Resume (PDF, DOCX, TXT)", type=["pdf", "docx", "txt"], key="resume_up")
             if uploaded:
-                reader      = PdfReader(uploaded)
-                resume_text = "".join(p.extract_text() or "" for p in reader.pages)
+                name = uploaded.name.lower()
+                resume_text = ""
+                if name.endswith(".pdf"):
+                    reader = PdfReader(uploaded)
+                    resume_text = "".join(p.extract_text() or "" for p in reader.pages)
+                elif name.endswith(".docx"):
+                    import zipfile
+                    import xml.etree.ElementTree as ET
+                    try:
+                        with zipfile.ZipFile(uploaded) as z:
+                            xml_content = z.read('word/document.xml')
+                        root = ET.fromstring(xml_content)
+                        paragraphs = []
+                        ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+                        for p in root.findall('.//w:p', ns):
+                            p_text = "".join(t.text for t in p.findall('.//w:t', ns) if t.text)
+                            if p_text:
+                                paragraphs.append(p_text)
+                        resume_text = "\n".join(paragraphs)
+                    except Exception as e:
+                        st.error(f"Error reading DOCX file: {e}")
+                elif name.endswith(".txt"):
+                    try:
+                        resume_text = uploaded.getvalue().decode("utf-8", errors="ignore")
+                    except Exception as e:
+                        st.error(f"Error reading TXT file: {e}")
+
                 if not resume_text.strip():
-                    st.warning("Could not extract text. Use a text-based PDF.")
+                    st.warning("Could not extract text. Please ensure the file contains extractable text content.")
                 else:
-                    with st.spinner("🔍 Analysing resume..."):
-                        try:
-                            system = (
-                                "You are Balaji, an expert placement counsellor at Sona College of Technology. "
-                                "You are NOT Claude, NOT ChatGPT, NOT any other AI. You are Balaji. "
-                                "Analyse resumes for tech company placements using these sections: "
-                                "1. **Strengths**  2. **Gaps & Improvements**  "
-                                "3. **Skills to Add**  4. **Overall Score /10**"
-                            )
-                            reply = ask_llama(system, f"Resume:\n{resume_text}")
-                            st.markdown("**🤖 Balaji's Resume Review:**")
-                            st.markdown(reply)
-                        except Exception as e:
-                            st.error(f"❌ Ollama error: {str(e)}")
+                    try:
+                        system = (
+                            "You are an expert placement counsellor. "
+                            "Analyse resumes for tech company placements using these sections: "
+                            "1. **Strengths**  2. **Gaps & Improvements**  "
+                            "3. **Skills to Add**  4. **Overall Score /10**"
+                        )
+                        st.markdown("**🤖 Balaji's Resume Review:**")
+                        st.write_stream(ask_gemini_stream(system, f"Resume:\n{resume_text}"))
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
 
             # ── Ask Balaji Student ────────────────────
             st.markdown('<div class="section-title">🤖 Ask Balaji</div>', unsafe_allow_html=True)
-
-            if "student_chat_history" not in st.session_state:
-                st.session_state.student_chat_history = []
-
             st.markdown("""
-            <div class="chat-container-box">
-                <div class="chat-topbar">
-                    <div class="chat-topbar-avatar">🎯</div>
-                    <div>
-                        <div class="chat-topbar-name">Balaji AI</div>
-                        <div class="chat-topbar-sub">YOUR PERSONAL PLACEMENT GUIDE</div>
-                    </div>
-                    <div class="chat-topbar-status">
-                        <div class="chat-topbar-dot"></div>
-                        <div class="chat-topbar-status-txt">ONLINE</div>
-                    </div>
-                </div>
-            </div>""", unsafe_allow_html=True)
+            <div class="info-card" style="background:#fffbeb;border-color:#fcd34d;">
+            <span style="color:#92400e;font-size:0.88rem;">
+            💡 Ask about interview prep, company details, profile improvement, or any placement doubt.
+            </span></div>""", unsafe_allow_html=True)
 
-            if not st.session_state.student_chat_history:
-                st.markdown("""
-                <div class="chat-empty">
-                    <div class="chat-empty-icon">🎓</div>
-                    <div class="chat-empty-title">Hi! I'm Balaji, your placement guide</div>
-                    <div class="chat-empty-sub">Ask about interview prep, companies,<br>resume tips, or anything about placements</div>
-                </div>""", unsafe_allow_html=True)
-
-            for msg in st.session_state.student_chat_history:
-                with st.chat_message(msg["role"], avatar="👤" if msg["role"] == "user" else "🤖"):
-                    st.markdown(msg["content"])
-
-            col_clrs, _ = st.columns([1, 5])
-            with col_clrs:
-                if st.button("🗑️ Clear Chat", key="clear_stu"):
-                    st.session_state.student_chat_history = []
-                    st.rerun()
-
-            if stu_q := st.chat_input("Ask Balaji about interviews, companies, career tips…", key="student_chat_input"):
-                comp_ctx = (load_companies(COMPANY_FILE).to_string(index=False)
-                            if os.path.exists(COMPANY_FILE) else "No company data.")
-                system = (
-                    "You are Balaji, a friendly AI placement assistant at Sona College of Technology. "
-                    "You are NOT Claude, NOT ChatGPT, NOT any other AI. You are Balaji, a custom AI "
-                    "built for Sona College of Technology's placement portal. If asked who you are or "
-                    "what model powers you, always say you are Balaji. "
-                    "Give practical, specific, encouraging advice based on the student's profile.\n\n"
-                    f"Student Profile: Name={name} | Dept={department} | CGPA={cgpa} | Skills={skills}\n"
-                    f"Available Companies:\n{comp_ctx}"
-                )
-                st.session_state.student_chat_history.append({"role": "user", "content": stu_q})
-                with st.chat_message("user", avatar="👤"):
-                    st.markdown(stu_q)
-                with st.chat_message("assistant", avatar="🤖"):
-                    with st.spinner(""):
-                        try:
-                            reply = ask_llama_chat(system, st.session_state.student_chat_history)
-                            st.markdown(reply)
-                            st.session_state.student_chat_history.append({"role": "assistant", "content": reply})
-                        except Exception as e:
-                            st.session_state.student_chat_history.pop()
-                            st.error(f"❌ Ollama error: {str(e)}")
+            stu_q = st.text_input("Your question", placeholder="e.g. How do I prepare for Accenture?", key="stu_q")
+            if st.button("Ask Balaji 🤖", key="ask_stu"):
+                if not stu_q.strip():
+                    st.warning("Please enter a question.")
+                else:
+                    comp_ctx = (load_companies(COMPANY_FILE).to_string(index=False)
+                                if os.path.exists(COMPANY_FILE) else "No company data.")
+                    system = (
+                        "You are Balaji, a friendly AI placement assistant at Sona College of Technology. "
+                        "Give practical, specific, encouraging advice."
+                    )
+                    user_msg = (
+                        f"Student: Name={name} | Dept={department} | CGPA={cgpa} | Skills={skills}\n\n"
+                        f"Companies:\n{comp_ctx}\n\nQuestion: {stu_q}"
+                    )
+                    try:
+                        st.markdown("**🤖 Balaji says:**")
+                        st.write_stream(ask_gemini_stream(system, user_msg))
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
 
 # ─────────────────────────────────────────────
 # FOOTER
@@ -1194,8 +989,8 @@ elif st.session_state.role == "student":
 st.markdown("""
 <div class="footer">
     <h4>🎓 Sona College of Technology</h4>
-    <p>Autonomous &nbsp;·&nbsp; NAAC A++ &nbsp;·&nbsp; AICTE Approved</p>
-    <p style="margin-top:10px;font-size:0.7rem;color:var(--text-3);">
+    <p>Autonomous | NAAC A++ | AICTE Approved</p>
+    <p style="margin-top:8px;color:rgba(255,255,255,0.4);font-size:0.78rem;">
         © 2026 Department of Training &amp; Placement &nbsp;·&nbsp; AI Placement Portal v2.0
     </p>
 </div>

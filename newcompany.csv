@@ -1,0 +1,21 @@
+Company_ID,Company,Domain,Departments,Eligibility CGPA,Required_Skill,Preferred_Certification,Job_Role,Job Roles,Job Location,CTC (LPA),Number of Rounds
+C01,TCS,Product-Based,IT,8.07,Python,AWS Certified,Business Analyst,Business Analyst | Python,Product-Based,N/A,N/A
+C02,Infosys,Core Engineering,MECH,7.02,Cloud Computing,Azure Fundamentals,Business Analyst,Business Analyst | Cloud Computing,Core Engineering,N/A,N/A
+C03,Wipro,Telecom,EEE,8.12,Machine Learning,Six Sigma,Cloud Engineer,Cloud Engineer | Machine Learning,Telecom,N/A,N/A
+C04,HCL,IT Services,IT,8.07,Cybersecurity,Azure Fundamentals,Business Analyst,Business Analyst | Cybersecurity,IT Services,N/A,N/A
+C05,Zoho,Startup,EEE,7.02,Web Development,Azure Fundamentals,Network Engineer,Network Engineer | Web Development,Startup,N/A,N/A
+C06,Accenture,Telecom,IT,7.98,Cybersecurity,PMP,System Engineer,System Engineer | Cybersecurity,Telecom,N/A,N/A
+C07,Cognizant,IT Services,MECH,8.8,Cloud Computing,Coursera ML,Data Analyst,Data Analyst | Cloud Computing,IT Services,N/A,N/A
+C08,Capgemini,IT Services,IT,7.27,Cybersecurity,Six Sigma,Cloud Engineer,Cloud Engineer | Cybersecurity,IT Services,N/A,N/A
+C09,Amazon,Core Engineering,CSE,7.04,Java,PMP,Data Analyst,Data Analyst | Java,Core Engineering,N/A,N/A
+C10,Google,Startup,AI&DS,6.61,Python,Coursera ML,System Engineer,System Engineer | Python,Startup,N/A,N/A
+C11,Microsoft,Telecom,IT,7.78,C++,Cisco CCNA,System Engineer,System Engineer | C++,Telecom,N/A,N/A
+C12,Flipkart,Telecom,EEE,8.17,Web Development,AWS Certified,Data Analyst,Data Analyst | Web Development,Telecom,N/A,N/A
+C13,L&T,IT Services,IT,8.37,Networking,AWS Certified,Business Analyst,Business Analyst | Networking,IT Services,N/A,N/A
+C14,Tata Motors,Startup,ECE,7.62,Java,Cisco CCNA,Business Analyst,Business Analyst | Java,Startup,N/A,N/A
+C15,Ashok Leyland,Product-Based,ECE,7.78,Cloud Computing,Coursera ML,Software Developer,Software Developer | Cloud Computing,Product-Based,N/A,N/A
+C16,HDFC Bank,IT Services,IT,7.51,C++,Coursera ML,Business Analyst,Business Analyst | C++,IT Services,N/A,N/A
+C17,ICICI Bank,Startup,ECE,7.66,Embedded Systems,Azure Fundamentals,Data Analyst,Data Analyst | Embedded Systems,Startup,N/A,N/A
+C18,Airtel,Startup,CSE,8.32,Embedded Systems,Cisco CCNA,System Engineer,System Engineer | Embedded Systems,Startup,N/A,N/A
+C19,Jio,Finance,AI&DS,6.94,Networking,PMP,System Engineer,System Engineer | Networking,Finance,N/A,N/A
+C20,Freshworks,Telecom,EEE,8.06,Cybersecurity,Google Data Analytics,ML Engineer,ML Engineer | Cybersecurity,Telecom,N/A,N/A

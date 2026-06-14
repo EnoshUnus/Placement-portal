@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placement AI Assistant</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:system-ui,sans-serif;
+background:#343541;
+color:white;
+height:100vh;
+overflow:hidden;
+}
+
+.container{
+display:flex;
+height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:260px;
+background:#202123;
+padding:15px;
+display:flex;
+flex-direction:column;
+}
+
+.sidebar h3{
+margin:0 0 10px 0;
+}
+
+.new-chat-btn{
+padding:10px;
+background:#444654;
+border:none;
+color:white;
+border-radius:6px;
+cursor:pointer;
+margin-bottom:15px;
+}
+
+.history{
+flex:1;
+overflow-y:auto;
+}
+
+.history-item{
+padding:10px;
+background:#2a2b32;
+border-radius:6px;
+margin-bottom:8px;
+cursor:pointer;
+font-size:13px;
+}
+
+.user-info{
+font-size:12px;
+margin-top:10px;
+opacity:0.8;
+}
+
+.logout-btn{
+margin-top:10px;
+padding:8px;
+background:#444654;
+border:none;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+.header{
+padding:15px;
+border-bottom:1px solid #444;
+font-weight:bold;
+}
+
+/* CHAT */
+
+.chat{
+flex:1;
+overflow-y:auto;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+.message{
+display:flex;
+}
+
+.message.user{
+justify-content:flex-end;
+}
+
+.message.assistant{
+justify-content:flex-start;
+}
+
+.message-content{
+max-width:65%;
+padding:12px 15px;
+border-radius:10px;
+line-height:1.6;
+}
+
+.user .message-content{
+background:#19c37d;
+color:black;
+}
+
+.assistant .message-content{
+background:#444654;
+}
+
+/* INPUT */
+
+.input-area{
+background:#40414f;
+padding:15px;
+}
+
+.controls{
+display:flex;
+gap:10px;
+margin-bottom:10px;
+}
+
+.controls select,
+.controls input{
+padding:8px;
+border-radius:6px;
+border:none;
+}
+
+.chat-input{
+display:flex;
+gap:10px;
+}
+
+textarea{
+flex:1;
+padding:12px;
+border-radius:8px;
+border:none;
+resize:none;
+font-family:inherit;
+}
+
+.send-btn{
+padding:10px 20px;
+background:#19c37d;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* CHART */
+
+.chart-box{
+background:white;
+padding:15px;
+border-radius:8px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="sidebar">
+
+<h3>💬 Chats</h3>
+
+<button class="new-chat-btn" onclick="clearChat()">+ New Chat</button>
+
+<div class="history" id="history"></div>
+
+<div class="user-info" id="userInfo"></div>
+
+<button class="logout-btn" onclick="logout()">Logout</button>
+
+</div>
+
+<div class="main">
+
+<div class="header">
+🤖 Placement Portal AI Assistant
+</div>
+
+<div class="chat" id="chat">
+
+<div style="opacity:0.7">
+Welcome! Ask me about placement eligibility or probability.
+</div>
+
+</div>
+
+<div class="input-area">
+
+<div class="controls">
+
+<select id="role">
+<option value="student">Student</option>
+<option value="admin">Admin</option>
+</select>
+
+<input id="studentId" placeholder="Student ID">
+
+<input type="file" id="fileUpload">
+
+</div>
+
+<div class="chat-input">
+
+<textarea id="question" rows="2"
+placeholder="Ask about placements, probability, eligibility..."></textarea>
+
+<button class="send-btn" onclick="send()">Send</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let chart=null;
+
+/* LOAD HISTORY */
+
+function loadHistory(){
+
+fetch("/api/history")
+.then(r=>r.json())
+.then(data=>{
+
+const history=document.getElementById("history");
+
+history.innerHTML="";
+
+if(!data.history) return;
+
+data.history.forEach(h=>{
+
+const item=document.createElement("div");
+item.className="history-item";
+item.innerText=h.question;
+
+history.appendChild(item);
+
+});
+
+});
+
+}
+
+/* ADD MESSAGE */
+
+function addMessage(text,role){
+
+const chat=document.getElementById("chat");
+
+const msg=document.createElement("div");
+msg.className="message "+role;
+
+msg.innerHTML='<div class="message-content">'+text+'</div>';
+
+chat.appendChild(msg);
+
+chat.scrollTop=chat.scrollHeight;
+
+}
+
+/* SEND MESSAGE */
+
+function send() {
+    const question = document.getElementById("question").value.trim();
+    if(!question) return;
+
+    addMessage(question, "user");
+    document.getElementById("question").value = "";
+
+    const role = document.getElementById("role").value;
+    const studentId = document.getElementById("studentId").value.trim();
+
+    fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            role: role,
+            question: question,
+            student_id: studentId
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.error) {
+            addMessage("Error: " + data.error, "assistant");
+        } else {
+            // Render response text, transforming markdown links into premium HTML links
+            let formattedText = data.answer_text || "";
+            formattedText = formattedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #19c37d; text-decoration: underline;">$1</a>');
+            formattedText = formattedText.replace(/\n/g, "<br>");
+            
+            addMessage(formattedText, "assistant");
+
+            if(data.chart) {
+                renderChart(data.chart);
+            }
+        }
+        loadHistory();
+    })
+    .catch(err => {
+        addMessage("Failed to get response.", "assistant");
+    });
+}
+
+function renderChart(chartData) {
+    if(!chartData) return;
+    
+    const chat = document.getElementById("chat");
+    const chartBox = document.createElement("div");
+    chartBox.className = "chart-box";
+    chartBox.innerHTML = '<canvas id="myChart" style="width:100%; height:220px;"></canvas>';
+    chat.appendChild(chartBox);
+    chat.scrollTop = chat.scrollHeight;
+    
+    const ctx = chartBox.querySelector('canvas').getContext('2d');
+    if(chart) {
+        chart.destroy();
+    }
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Match Score %',
+                data: chartData.values,
+                backgroundColor: 'rgba(25, 195, 125, 0.75)',
+                borderColor: '#19c37d',
+                borderWidth: 1.5,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: 'white' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: 'white' }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: 'white' } }
+            }
+        }
+    });
+}
+
+function clearChat() {
+    document.getElementById("chat").innerHTML = '<div style="opacity:0.7">Welcome! Ask me about placement eligibility or probability.</div>';
+    if(chart) {
+        chart.destroy();
+        chart = null;
+    }
+}
+
+function logout() {
+    window.location.href = "/logout";
+}
+
+// File Upload Handler
+document.getElementById("fileUpload").addEventListener("change", function() {
+    const file = this.files[0];
+    if(!file) return;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    addMessage("Uploading " + file.name + "...", "user");
+    
+    fetch("/api/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.filename) {
+            addMessage("Uploaded file successfully: " + data.filename, "assistant");
+        } else {
+            addMessage("Upload failed: " + (data.status || "unknown error"), "assistant");
+        }
+    })
+    .catch(err => {
+        addMessage("Upload failed.", "assistant");
+    });
+});
+
+// Initial Setup
+loadHistory();
+
+document.getElementById("question").addEventListener("keydown", function(e) {
+    if(e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+    }
+});
+
+// Render user welcome
+const email = "{{ session.get('email', '') }}";
+if (email) {
+    document.getElementById("userInfo").innerHTML = `Logged in as:<br><b>${email}</b>`;
+}
+</script>
+
+</body>
+</html>
